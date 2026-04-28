@@ -80,15 +80,15 @@
 
     td:nth-child(1)::before { content: "Data e Hora"; }
     td:nth-child(2)::before { content: "Barbeiro"; }
-    td:nth-child(3)::before { content: "Forma PG"; }
-    td:nth-child(4)::before { content: "Valor"; }
+    td:nth-child(3)::before { content: "AA"; }
+    td:nth-child(4)::before { content: "AB"; }
   }
 </style>
 </head>
 
 <body>
 
-<h2>Comandas Campinas</h2>
+<h2>Comandas Campinas 🔐</h2>
 
 <div class="table-container">
   <table>
@@ -96,8 +96,8 @@
       <tr>
         <th>Data e Hora</th>
         <th>Barbeiro</th>
-        <th>Forma PG</th>
-        <th>Valor</th>
+        <th>AA</th>
+        <th>AB</th>
       </tr>
     </thead>
     <tbody id="tabela"></tbody>
@@ -105,77 +105,54 @@
 </div>
 
 <script>
-const url = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTlvzX6W8ZPYB2QSicxv6LXWv0Xc1TuhcoSbcCd5JskarjMueLhZzwuTzjPfZXPgNozYrjxdfmOEqIB/pub?gid=85219282&single=true&output=csv";
-
+// 🔗 PEGAR ACESSO DA URL
 const params = new URLSearchParams(window.location.search);
 const acesso = params.get("acesso") || "";
 
-const acessos = {
-  "Claudia260225": "Claudia",
-  "Obert5051": "Obert",
-  "Tiago242526": "Tiago",
-  "admin9999": "admin"
-};
-
-const filtro = acessos[acesso] || null;
-
-function normalizar(texto) {
-  return texto
-    .toLowerCase()
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "");
-}
+// 🔐 SUA API SEGURA
+const API = "https://script.google.com/macros/s/AKfycbxEdZvajOFLokIjPpFGT_PHFnz4H_PYMb7XuR6Q9DBHBnvQbI5u2MBfy8xQvmoVqTbDuQ/exec";
 
 function carregarDados() {
 
   const tabela = document.getElementById("tabela");
 
-  if (!filtro) {
-    tabela.innerHTML = "<tr><td colspan='4'>🔒 Acesso inválido</td></tr>";
-    return;
-  }
-
-  fetch(url)
-    .then(response => response.text())
+  fetch(`${API}?acesso=${acesso}`)
+    .then(res => res.json())
     .then(data => {
 
-      const linhas = data.split("\n").reverse();
       tabela.innerHTML = "";
 
-      linhas.forEach((linha, index) => {
+      // 🔒 acesso inválido
+      if (data.erro) {
+        tabela.innerHTML = "<tr><td colspan='4'>🔒 Acesso negado</td></tr>";
+        return;
+      }
 
-        if (index === linhas.length - 1) return;
-        if (!linha.trim()) return;
-
-        const colunas = linha.split(",");
-
-        const col2 = colunas[1] || "";
-        const col7 = colunas[6] || "";
-        const colAA = colunas[26] || "";
-        const colAB = colunas[27] || "";
-
-        if (!col2 && !col7) return;
-
-        if (filtro !== "admin") {
-          if (!normalizar(col7).includes(normalizar(filtro))) return;
-        }
+      // 🔄 inverter ordem
+      data.reverse().forEach(item => {
 
         const tr = document.createElement("tr");
 
         tr.innerHTML = `
-          <td>${col2}</td>
-          <td>${col7}</td>
-          <td>${colAA}</td>
-          <td>${colAB}</td>
+          <td>${item.dataHora || ""}</td>
+          <td>${item.barbeiro || ""}</td>
+          <td>${item.AA || ""}</td>
+          <td>${item.AB || ""}</td>
         `;
 
         tabela.appendChild(tr);
       });
+
     })
-    .catch(err => console.error("Erro:", err));
+    .catch(err => {
+      console.error(err);
+      tabela.innerHTML = "<tr><td colspan='4'>⚠️ Erro ao carregar</td></tr>";
+    });
 }
 
 carregarDados();
+
+// 🔄 Atualiza a cada 10s
 setInterval(carregarDados, 10000);
 </script>
 
