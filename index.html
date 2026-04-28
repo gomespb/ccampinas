@@ -20,7 +20,14 @@ fetch(URL)
     let html = "";
 
     linhas.forEach(linha => {
-      html += linha + "<br>";
+      const colunas = linha.split(",");
+
+      const c2  = colunas[1]  || "";
+      const c7  = colunas[6]  || "";
+      const cAA = colunas[26] || "";
+      const cAB = colunas[27] || "";
+
+      html += c2 + " | " + c7 + " | " + cAA + " | " + cAB + "<br>";
     });
 
     document.getElementById("dados").innerHTML = html;
