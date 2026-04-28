@@ -53,14 +53,12 @@
   .valor {
     color: #22c55e;
     font-weight: bold;
-    font-size: 16px;
     text-align: right;
   }
 
   .destaque {
     color: #f59e0b;
     font-weight: bold;
-    font-size: 16px;
     text-align: right;
   }
 
@@ -78,7 +76,25 @@
     table {
       width: 100%;
       border-collapse: collapse;
-      table-layout: fixed; /* 🔥 alinhamento fixo */
+    }
+
+    thead {
+      display: table;
+      width: 100%;
+      table-layout: fixed;
+    }
+
+    tbody {
+      display: block;
+      max-height: 500px;
+      overflow-y: auto;
+      width: 100%;
+    }
+
+    tbody tr {
+      display: table;
+      width: 100%;
+      table-layout: fixed;
     }
 
     th, td {
@@ -93,14 +109,20 @@
       font-weight: 600;
     }
 
-    /* 🔥 larguras fixas */
+    /* larguras fixas */
     th:nth-child(1), td:nth-child(1) { width: 30%; }
     th:nth-child(2), td:nth-child(2) { width: 25%; }
     th:nth-child(3), td:nth-child(3) { width: 25%; }
     th:nth-child(4), td:nth-child(4) { width: 20%; text-align: right; }
 
-    .valor, .destaque {
-      font-size: 14px;
+    /* scrollbar bonita */
+    tbody::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    tbody::-webkit-scrollbar-thumb {
+      background: #333;
+      border-radius: 10px;
     }
   }
 
