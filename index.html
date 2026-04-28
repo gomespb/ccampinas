@@ -1,46 +1,145 @@
 <!DOCTYPE html>
-<html>
+<html lang="pt-br">
 <head>
 <meta charset="UTF-8">
-<title>Dados</title>
+<title>Comandas</title>
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<style>
+  body {
+    font-family: Arial;
+    margin: 0;
+    padding: 10px;
+    background: #0b0f1a;
+    color: #fff;
+  }
+
+  h3 {
+    text-align: center;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+
+  th, td {
+    padding: 8px;
+    text-align: left;
+    border-bottom: 1px solid #333;
+    font-size: 14px;
+  }
+
+  th {
+    background: #111827;
+  }
+
+  tr:nth-child(even) {
+    background: #111827;
+  }
+
+  .valor {
+    color: #22c55e;
+    font-weight: bold;
+  }
+
+  @media (max-width: 600px) {
+    th, td {
+      font-size: 12px;
+      padding: 6px;
+    }
+  }
+</style>
+
 </head>
 
 <body>
 
-<h3>Planilha</h3>
+<h3>Comandas</h3>
 
-<div id="dados">Carregando...</div>
+<table>
+  <thead>
+    <tr>
+      <th>Data</th>
+      <th>Barbeiro</th>
+      <th>FormaPG</th>
+      <th>Valor</th>
+    </tr>
+  </thead>
+  <tbody id="dados">
+    <tr><td colspan="4">Carregando...</td></tr>
+  </tbody>
+</table>
 
 <script>
 const URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTlvzX6W8ZPYB2QSicxv6LXWv0Xc1TuhcoSbcCd5JskarjMueLhZzwuTzjPfZXPgNozYrjxdfmOEqIB/pub?gid=85219282&single=true&output=csv";
 
-fetch(URL)
-  .then(res => res.text())
-  .then(texto => {
-    const linhas = texto.split("\n");
-    let html = "";
+function parseDataBR(dataStr) {
+  if (!dataStr) return new Date(0);
 
-    // ✅ Cabeçalho
-    html += "<b>Data | Barbeiro | FormaPG | Valor</b><br>";
+  // tenta formato dd/mm/yyyy hh:mm:ss
+  const partes = dataStr.split(" ");
+  if (partes.length >= 2) {
+    const [dia, mes, ano] = partes[0].split("/");
+    const hora = partes[1];
+    return new Date(`${ano}-${mes}-${dia}T${hora}`);
+  }
 
-    linhas.forEach((linha, index) => {
-      if (index === 0) return; // pula cabeçalho da planilha
+  return new Date(dataStr);
+}
 
-      const colunas = linha.split(",");
+function carregarDados() {
+  fetch(URL)
+    .then(res => res.text())
+    .then(texto => {
+      const linhas = texto.split("\n");
 
-      const data = colunas[1]  || "";
-      const barbeiro = colunas[6]  || "";
-      const forma = colunas[26] || "";
-      const valor = colunas[27] || "";
+      let dados = [];
 
-      html += data + " | " + barbeiro + " | " + forma + " | " + valor + "<br>";
+      linhas.forEach((linha, index) => {
+        if (index === 0) return;
+
+        const colunas = linha.split(",");
+
+        dados.push({
+          data: colunas[1]  || "",
+          barbeiro: colunas[6]  || "",
+          forma: colunas[26] || "",
+          valor: colunas[27] || "",
+          dataObj: parseDataBR(colunas[1])
+        });
+      });
+
+      // 🔥 ordenar mais recente primeiro
+      dados.sort((a, b) => b.dataObj - a.dataObj);
+
+      let html = "";
+
+      dados.forEach(item => {
+        html += `
+          <tr>
+            <td>${item.data}</td>
+            <td>${item.barbeiro}</td>
+            <td>${item.forma}</td>
+            <td class="valor">${item.valor}</td>
+          </tr>
+        `;
+      });
+
+      document.getElementById("dados").innerHTML = html;
+    })
+    .catch(() => {
+      document.getElementById("dados").innerHTML =
+        "<tr><td colspan='4'>Erro ao carregar</td></tr>";
     });
+}
 
-    document.getElementById("dados").innerHTML = html;
-  })
-  .catch(() => {
-    document.getElementById("dados").innerHTML = "Erro ao carregar";
-  });
+// atualização automática
+setInterval(carregarDados, 10000);
+
+// inicial
+carregarDados();
 </script>
 
 </body>
