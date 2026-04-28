@@ -110,7 +110,7 @@ const params = new URLSearchParams(window.location.search);
 const acesso = params.get("acesso") ?? "";
 
 // 🔐 SUA API
-const API = "https://script.google.com/macros/s/AKfycbyXfGdKipKRIOY_TStWW9WstXhsIqoGLJSXFuPMAjgSFP0nX18HI_0dYsIDMd_XH6pq/exec";
+const API = "https://script.google.com/macros/s/AKfycbwodxFX0-pXJAGwqyj6GzjATzO1L51y6GYEWKWpEbgp3HnQESIsczgGgbEiePEgipcgcA/exec";
 
 // 💰 FORMATAÇÃO DE MOEDA
 function formatarMoeda(valor) {
@@ -123,27 +123,9 @@ function formatarMoeda(valor) {
   });
 }
 
-// 📅 DATA CORRIGIDA (ANTI INVALID DATE)
+// 📅 DATA (AGORA SIMPLES E CORRETA)
 function formatarData(data) {
-  if (!data) return "";
-
-  let d = new Date(data);
-
-  if (isNaN(d.getTime())) {
-    if (typeof data === "string" && data.includes("/")) {
-      const partes = data.split(" ");
-      const dataPart = partes[0].split("/");
-      const horaPart = partes[1] ? partes[1].split(":") : ["00","00","00"];
-
-      d = new Date(
-        `${dataPart[2]}-${dataPart[1]}-${dataPart[0]}T${horaPart[0]}:${horaPart[1]}:${horaPart[2]}`
-      );
-    }
-  }
-
-  if (isNaN(d.getTime())) return "Data inválida";
-
-  return d.toLocaleString("pt-BR");
+  return data || "";
 }
 
 function carregarDados() {
