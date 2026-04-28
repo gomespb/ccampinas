@@ -3,19 +3,81 @@
 <head>
 <meta charset="UTF-8">
 <title>Comandas Campinas</title>
+
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
 <style>
-  body { font-family: Arial, sans-serif; background: #0b0f1a; color: #fff; text-align: center; margin: 0; padding: 15px; }
-  .table-container { width: 100%; overflow-x: auto; }
-  table { margin: auto; border-collapse: collapse; width: 100%; max-width: 1000px; background: #121826; border-radius: 10px; overflow: hidden; }
-  th { background: #1f2937; color: #00ff88; text-transform: uppercase; font-size: 13px; padding: 12px; text-align: left; }
-  td { color: #ffffff !important; padding: 12px; border-bottom: 1px solid #1f2937; text-align: left; }
-  tr:hover { background: #1a2332; }
+  body {
+    font-family: Arial;
+    background: #0b0f1a;
+    color: #fff;
+    text-align: center;
+    margin: 0;
+    padding: 15px;
+  }
+
+  .table-container {
+    width: 100%;
+    overflow-x: auto;
+  }
+
+  table {
+    margin: auto;
+    border-collapse: collapse;
+    width: 100%;
+    max-width: 1000px;
+    background: #121826;
+    border-radius: 10px;
+    overflow: hidden;
+  }
+
+  th {
+    background: #1f2937;
+    color: #00ff88;
+    text-transform: uppercase;
+    font-size: 13px;
+  }
+
+  td {
+    color: #ffffff !important;
+  }
+
+  td, th {
+    padding: 12px;
+    border-bottom: 1px solid #1f2937;
+    text-align: left;
+  }
+
+  tr:hover {
+    background: #1a2332;
+  }
+
   @media (max-width: 600px) {
     thead { display: none; }
-    tr { display: block; margin-bottom: 12px; background: #121826; border-radius: 10px; padding: 10px; }
-    td { display: block; border: none; padding: 6px 0; font-size: 14px; }
-    td::before { font-weight: bold; color: #00ff88; display: block; font-size: 12px; margin-bottom: 2px; }
+
+    tr {
+      display: block;
+      margin-bottom: 12px;
+      background: #121826;
+      border-radius: 10px;
+      padding: 10px;
+    }
+
+    td {
+      display: block;
+      border: none;
+      padding: 6px 0;
+      font-size: 14px;
+    }
+
+    td::before {
+      font-weight: bold;
+      color: #00ff88;
+      display: block;
+      font-size: 12px;
+      margin-bottom: 2px;
+    }
+
     td:nth-child(1)::before { content: "Data e Hora"; }
     td:nth-child(2)::before { content: "Barbeiro"; }
     td:nth-child(3)::before { content: "Forma PG"; }
@@ -23,6 +85,7 @@
   }
 </style>
 </head>
+
 <body>
 
 <h2>Comandas Campinas 🔐</h2>
@@ -37,62 +100,100 @@
         <th>Valor</th>
       </tr>
     </thead>
-    <tbody id="tabela">
-      <tr><td colspan="4">Carregando dados...</td></tr>
-    </tbody>
+    <tbody id="tabela"></tbody>
   </table>
 </div>
 
 <script>
+// 🔗 PEGAR ACESSO DA URL
 const params = new URLSearchParams(window.location.search);
 const acesso = params.get("acesso") ?? "";
+
+// 🔐 SUA API
 const API = "https://script.google.com/macros/s/AKfycbyHUG9oKBjNZGSgPCdcRt6Kequ5Uo9h9IaF_h0-8eq2aGJZ6jHEfij22p8IgzSHuhM5Mw/exec";
 
+// 💰 FORMATAÇÃO DE MOEDA
 function formatarMoeda(valor) {
   const numero = parseFloat(valor);
   if (isNaN(numero)) return "R$ 0,00";
-  return numero.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+
+  return numero.toLocaleString("pt-BR", {
+    style: "currency",
+    currency: "BRL"
+  });
+}
+
+// 📅 DATA CORRIGIDA (ANTI INVALID DATE)
+function formatarData(data) {
+  if (!data) return "";
+
+  let d = new Date(data);
+
+  if (isNaN(d.getTime())) {
+    if (typeof data === "string" && data.includes("/")) {
+      const partes = data.split(" ");
+      const dataPart = partes[0].split("/");
+      const horaPart = partes[1] ? partes[1].split(":") : ["00","00","00"];
+
+      d = new Date(
+        `${dataPart[2]}-${dataPart[1]}-${dataPart[0]}T${horaPart[0]}:${horaPart[1]}:${horaPart[2]}`
+      );
+    }
+  }
+
+  if (isNaN(d.getTime())) return "Data inválida";
+
+  return d.toLocaleString("pt-BR");
 }
 
 function carregarDados() {
+
   const tabela = document.getElementById("tabela");
 
   fetch(`${API}?acesso=${acesso}`)
     .then(res => res.json())
     .then(data => {
+
+      tabela.innerHTML = "";
+
+      // 🔒 acesso inválido
       if (data.erro) {
         tabela.innerHTML = "<tr><td colspan='4'>🔒 Acesso negado</td></tr>";
         return;
       }
 
-      tabela.innerHTML = "";
-      const lista = Array.isArray(data) ? data.reverse() : [];
-
-      lista.forEach(item => {
-        // Pega o valor da primeira coluna (que deve ser a data) sem formatar nada
-        const colunas = Object.values(item);
-        const dataBruta = colunas[0] || "---";
+      // 🔄 inverter ordem
+      data.reverse().forEach(item => {
 
         const tr = document.createElement("tr");
+
         tr.innerHTML = `
-          <td>${dataBruta}</td>
+          <td>${formatarData(item.dataHora)}</td>
           <td>${item.barbeiro ?? ""}</td>
           <td>${item.AA ?? ""}</td>
           <td>
-            ${item.AA?.toLowerCase() === "assinatura" ? (item.AB ?? "0") : formatarMoeda(item.AB)}
+            ${
+              item.AA?.toLowerCase() === "assinatura"
+                ? (item.AB ?? "0")
+                : formatarMoeda(item.AB)
+            }
           </td>
         `;
+
         tabela.appendChild(tr);
       });
+
     })
     .catch(err => {
       console.error(err);
-      tabela.innerHTML = "<tr><td colspan='4'>⚠️ Erro na conexão</td></tr>";
+      tabela.innerHTML = "<tr><td colspan='4'>⚠️ Erro ao carregar</td></tr>";
     });
 }
 
 carregarDados();
-setInterval(carregarDados, 15000);
+
+// 🔄 Atualiza a cada 10s
+setInterval(carregarDados, 10000);
 </script>
 
 </body>
