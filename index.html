@@ -56,12 +56,19 @@
     font-size: 16px;
   }
 
+  /* 🔥 destaque 1,2,3 */
+  .destaque {
+    color: #f59e0b;
+    font-weight: bold;
+    font-size: 16px;
+  }
+
   .data {
     color: #9ca3af;
     font-size: 12px;
   }
 
-  /* PC → tabela */
+  /* PC */
   @media (min-width: 700px) {
     .cards {
       display: none;
@@ -81,18 +88,17 @@
       background: #111827;
     }
 
-    .valor {
+    .valor, .destaque {
       font-size: 14px;
     }
   }
 
-  /* Mobile → cards */
+  /* Mobile */
   @media (max-width: 699px) {
     table {
       display: none;
     }
   }
-
 </style>
 </head>
 
@@ -140,12 +146,24 @@ function parseDataBR(dataStr) {
   return new Date(dataStr);
 }
 
+// 🔥 função com destaque
 function formatarValor(v) {
   const num = parseFloat(v) || 0;
-  return num.toLocaleString("pt-BR", {
-    style: "currency",
-    currency: "BRL"
-  });
+
+  if (num === 1 || num === 2 || num === 3) {
+    return {
+      texto: num,
+      classe: "destaque"
+    };
+  }
+
+  return {
+    texto: num.toLocaleString("pt-BR", {
+      style: "currency",
+      currency: "BRL"
+    }),
+    classe: "valor"
+  };
 }
 
 function carregarDados() {
@@ -173,19 +191,20 @@ function carregarDados() {
       // ordenar mais recente
       dados.sort((a,b) => b.dataObj - a.dataObj);
 
-      // horário atualização
       document.getElementById("atualizacao").innerText =
         "Atualizado: " + new Date().toLocaleTimeString("pt-BR");
 
       // MOBILE
       let htmlCards = "";
       dados.forEach(item => {
+        const v = formatarValor(item.valor);
+
         htmlCards += `
           <div class="card">
             <div class="data">${item.data}</div>
             <div class="linha"><strong>${item.barbeiro}</strong></div>
             <div class="linha">${item.forma}</div>
-            <div class="valor">${formatarValor(item.valor)}</div>
+            <div class="${v.classe}">${v.texto}</div>
           </div>
         `;
       });
@@ -195,12 +214,14 @@ function carregarDados() {
       // PC
       let htmlTabela = "";
       dados.forEach(item => {
+        const v = formatarValor(item.valor);
+
         htmlTabela += `
           <tr>
             <td>${item.data}</td>
             <td>${item.barbeiro}</td>
             <td>${item.forma}</td>
-            <td class="valor">${formatarValor(item.valor)}</td>
+            <td class="${v.classe}">${v.texto}</td>
           </tr>
         `;
       });
