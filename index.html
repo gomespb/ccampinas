@@ -17,7 +17,6 @@
 
   h2 {
     text-align: center;
-    margin-bottom: 15px;
   }
 
   .card {
@@ -25,85 +24,77 @@
     border-radius: 10px;
     padding: 12px;
     margin-bottom: 10px;
-    box-shadow: 0 0 5px rgba(0,0,0,0.3);
   }
 
   .linha {
     display: flex;
     justify-content: space-between;
     font-size: 14px;
-    margin: 3px 0;
   }
 
   .valor {
     color: #22c55e;
     font-weight: bold;
   }
-
-  .erro {
-    color: red;
-    text-align: center;
-  }
 </style>
-
 </head>
 
 <body>
 
 <h2>Comandas</h2>
-
 <div id="conteudo"></div>
 
 <script>
-const URL = "https://script.google.com/macros/s/AKfycbyHKmZiUMxV0g8n47nMFt9N_VmgDQf9BGrpeo53PFWxPOo91M7ZBU8lAOBo4eKlhAQyJA/exec";
+const URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTlvzX6W8ZPYB2QSicxv6LXWv0Xc1TuhcoSbcCd5JskarjMueLhZzwuTzjPfZXPgNozYrjxdfmOEqIB/pub?gid=85219282&single=true&output=csv";
 
-// pega acesso da URL (?acesso=Claudia260225)
-const params = new URLSearchParams(window.location.search);
-const acesso = params.get("acesso") || "boleta1981";
+function parseCSV(texto) {
+  const linhas = texto.split("\n").map(l => l.split(","));
+  return linhas;
+}
 
 async function carregarDados() {
   try {
-    const response = await fetch(`${URL}?acesso=${acesso}`);
-    const dados = await response.json();
+    const res = await fetch(URL);
+    const texto = await res.text();
+
+    const dados = parseCSV(texto);
+
+    const cabecalho = dados[0];
+
+    const colData = cabecalho.indexOf("Data e Hora");
+    const colBarbeiro = cabecalho.indexOf("Barbeiro");
+    const colForma = cabecalho.indexOf("Forma PG");
+    const colValor = cabecalho.indexOf("Valor");
 
     const container = document.getElementById("conteudo");
     container.innerHTML = "";
 
-    if (dados.erro) {
-      container.innerHTML = `<p class="erro">${dados.erro}</p>`;
-      return;
-    }
+    // inverter ordem
+    dados.slice(1).reverse().forEach(linha => {
 
-    // inverter ordem (último primeiro)
-    dados.reverse();
+      if (!linha[colBarbeiro]) return;
 
-    dados.forEach(item => {
+      let data = linha[colData];
 
-      // formatar data
-      let dataFormatada = item.dataHora;
-
-      if (item.dataHora) {
-        const d = new Date(item.dataHora.replace(" ", "T"));
-        dataFormatada = d.toLocaleString("pt-BR");
+      if (data) {
+        const d = new Date(data);
+        data = isNaN(d) ? data : d.toLocaleString("pt-BR");
       }
 
-      // formatar valor
-      let valorFormatado = "R$ 0,00";
+      let valor = parseFloat(linha[colValor]) || 0;
 
-      if (item.AB > 2) {
-        valorFormatado = item.AB.toLocaleString("pt-BR", {
-          style: "currency",
-          currency: "BRL"
-        });
-      } else {
-        valorFormatado = item.AB;
-      }
+      let valorFormatado = valor <= 2
+        ? valor
+        : valor.toLocaleString("pt-BR", {
+            style: "currency",
+            currency: "BRL"
+          });
 
       const card = `
         <div class="card">
-          <div class="linha"><strong>Data:</strong> ${dataFormatada}</div>
-          <div class="linha"><strong>Barbeiro:</strong> ${item.barbeiro}</div>
-          <div class="linha"><strong>Forma:</strong> ${item.AA}</div>
+          <div class="linha"><strong>Data:</strong> ${data}</div>
+          <div class="linha"><strong>Barbeiro:</strong> ${linha[colBarbeiro]}</div>
+          <div class="linha"><strong>Forma:</strong> ${linha[colForma]}</div>
           <div class="linha valor">${valorFormatado}</div>
         </div>
       `;
@@ -113,14 +104,13 @@ async function carregarDados() {
 
   } catch (erro) {
     document.getElementById("conteudo").innerHTML =
-      `<p class="erro">Erro ao carregar dados</p>`;
+      "<p>Erro ao carregar</p>";
   }
 }
 
-// atualizar a cada 10 segundos
+// atualiza a cada 10s
 setInterval(carregarDados, 10000);
 
-// carregar ao abrir
 carregarDados();
 </script>
 
