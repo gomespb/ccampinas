@@ -1,153 +1,5 @@
-<!DOCTYPE html>
-<html lang="pt-br">
-<head>
-<meta charset="UTF-8">
-<title>Comandas</title>
-
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-<style>
-  body {
-    font-family: Arial, sans-serif;
-    margin: 0;
-    background: #0b0f1a;
-    color: #fff;
-  }
-
-  header {
-    background: #111827;
-    padding: 15px;
-    text-align: center;
-    font-size: 18px;
-    font-weight: bold;
-  }
-
-  .container {
-    padding: 10px;
-    max-width: 900px;
-    margin: auto;
-  }
-
-  .topo {
-    display: flex;
-    justify-content: flex-end;
-    margin-bottom: 10px;
-    font-size: 14px;
-  }
-
-  .card {
-    background: #111827;
-    border-radius: 10px;
-    padding: 12px;
-    margin-bottom: 10px;
-  }
-
-  .linha {
-    display: flex;
-    justify-content: space-between;
-    margin: 4px 0;
-  }
-
-  .valor {
-    color: #22c55e;
-    font-weight: bold;
-    text-align: right;
-  }
-
-  .destaque {
-    color: #f59e0b;
-    font-weight: bold;
-    text-align: right;
-  }
-
-  @media (min-width: 700px) {
-    .cards { display: none; }
-
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      table-layout: fixed;
-    }
-
-    th, td {
-      padding: 10px;
-      border-bottom: 1px solid #333;
-    }
-
-    th { background: #111827; }
-
-    th:nth-child(1), td:nth-child(1) { width: 30%; }
-    th:nth-child(2), td:nth-child(2) { width: 25%; }
-    th:nth-child(3), td:nth-child(3) { width: 25%; }
-    th:nth-child(4), td:nth-child(4) { width: 20%; text-align: right; }
-  }
-
-  @media (max-width: 699px) {
-    table { display: none; }
-  }
-</style>
-</head>
-
-<body>
-
-<header>Comandas</header>
-
-<div class="container">
-
-  <div class="topo">
-    <div id="atualizacao">Atualizando...</div>
-  </div>
-
-  <div class="cards" id="cards"></div>
-
-  <table>
-    <thead>
-      <tr>
-        <th>Data</th>
-        <th>Barbeiro</th>
-        <th>FormaPG</th>
-        <th>Valor</th>
-      </tr>
-    </thead>
-    <tbody id="tabela"></tbody>
-  </table>
-
-</div>
-
 <script>
-const URL = "function doGet() {
-  const sheet = SpreadsheetApp.openById("1ZTT7ETr51d7CHdiZDbbeEQyGaU1TxGA1CtdQ-EzN3Jw");
-  const aba = sheet.getSheets()[0];
-  const dados = aba.getDataRange().getValues();
-
-  const resultado = [];
-
-  for (let i = 1; i < dados.length; i++) {
-    const linha = dados[i];
-
-    const barbeiro = linha[6];
-    if (!barbeiro) continue;
-
-    // 🔥 SIMPLES: sempre converte e formata
-    const data = new Date(linha[1]);
-    const dataFormatada = Utilities.formatDate(
-      data,
-      "America/Sao_Paulo",
-      "dd/MM/yyyy HH:mm:ss"
-    );
-
-    resultado.push({
-      data: dataFormatada,
-      barbeiro: barbeiro.toString(),
-      forma: linha[26] ? linha[26].toString() : "",
-      valor: Number(linha[27]) || 0
-    });
-  }
-
-  return ContentService
-    .createTextOutput(JSON.stringify(resultado))
-    .setMimeType(ContentService.MimeType.JSON);
-}";
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwaG5YkcCTPE1yUSyFL_GQTtSKs94GTUCYfcqG1gYnpndewdQWCGABBupS88v8fKwfpzg/exec";
 
 function parseDataBR(dataStr) {
   if (!dataStr) return new Date(0);
@@ -178,10 +30,44 @@ function formatarValor(v) {
   };
 }
 
+function bloquearTela(msg) {
+  document.body.innerHTML = `
+    <div style="
+      display:flex;
+      height:100vh;
+      align-items:center;
+      justify-content:center;
+      font-family:Arial;
+      background:#0b0f1a;
+      color:#fff;
+      text-align:center;
+    ">
+      <h2>${msg}</h2>
+    </div>
+  `;
+}
+
 function carregarDados() {
+  const params = new URLSearchParams(window.location.search);
+  const acesso = params.get("acesso");
+
+  // ❌ sem acesso
+  if (!acesso) {
+    bloquearTela("Acesso não autorizado");
+    return;
+  }
+
+  const URL = SCRIPT_URL + "?acesso=" + acesso;
+
   fetch(URL)
     .then(res => res.json())
     .then(dados => {
+
+      // ❌ acesso inválido no script
+      if (dados.erro) {
+        bloquearTela("Acesso negado");
+        return;
+      }
 
       dados.forEach(item => {
         item.dataObj = parseDataBR(item.data);
@@ -228,13 +114,13 @@ function carregarDados() {
 
     })
     .catch(() => {
-      document.getElementById("cards").innerHTML = "Erro ao carregar";
+      bloquearTela("Erro ao carregar");
     });
 }
 
+// auto atualização
 setInterval(carregarDados, 10000);
+
+// inicial
 carregarDados();
 </script>
-
-</body>
-</html>
