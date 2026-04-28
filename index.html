@@ -30,7 +30,7 @@
 
   .topo {
     display: flex;
-    justify-content: space-between;
+    justify-content: flex-end;
     margin-bottom: 10px;
     font-size: 14px;
   }
@@ -61,7 +61,7 @@
     font-size: 12px;
   }
 
-  /* PC → tabela */
+  /* PC */
   @media (min-width: 700px) {
     .cards {
       display: none;
@@ -86,13 +86,12 @@
     }
   }
 
-  /* Mobile → cards */
+  /* Mobile */
   @media (max-width: 699px) {
     table {
       display: none;
     }
   }
-
 </style>
 </head>
 
@@ -103,7 +102,7 @@
 <div class="container">
 
   <div class="topo">
-      <div id="atualizacao">Atualizando...</div>
+    <div id="atualizacao">Atualizando...</div>
   </div>
 
   <!-- MOBILE -->
@@ -155,36 +154,28 @@ function carregarDados() {
       const linhas = texto.split("\n");
 
       let dados = [];
-      let total = 0;
 
       linhas.forEach((linha, index) => {
         if (index === 0) return;
 
         const col = linha.split(",");
 
-        const valor = parseFloat(col[27]) || 0;
-        total += valor;
-
         dados.push({
           data: col[1],
           barbeiro: col[6],
           forma: col[26],
-          valor: valor,
+          valor: parseFloat(col[27]) || 0,
           dataObj: parseDataBR(col[1])
         });
       });
 
-      // ordenar mais recente
+      // ordenar mais recente primeiro
       dados.sort((a,b) => b.dataObj - a.dataObj);
-
-      // atualizar total
-      document.getElementById("total").innerText =
-        "Total: " + formatarValor(total);
 
       document.getElementById("atualizacao").innerText =
         "Atualizado: " + new Date().toLocaleTimeString("pt-BR");
 
-      // MOBILE (cards)
+      // MOBILE
       let htmlCards = "";
       dados.forEach(item => {
         htmlCards += `
@@ -199,7 +190,7 @@ function carregarDados() {
 
       document.getElementById("cards").innerHTML = htmlCards;
 
-      // PC (tabela)
+      // PC
       let htmlTabela = "";
       dados.forEach(item => {
         htmlTabela += `
