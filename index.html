@@ -2,7 +2,7 @@
 <html lang="pt-br">
 <head>
 <meta charset="UTF-8">
-<title>Comandas Campinas</title>
+<title>Comandas</title>
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
@@ -76,25 +76,7 @@
     table {
       width: 100%;
       border-collapse: collapse;
-    }
-
-    thead {
-      display: table;
-      width: 100%;
-      table-layout: fixed;
-    }
-
-    tbody {
-      display: block;
-      max-height: 500px;
-      overflow-y: auto;
-      width: 100%;
-    }
-
-    tbody tr {
-      display: table;
-      width: 100%;
-      table-layout: fixed;
+      table-layout: fixed; /* mantém alinhamento */
     }
 
     th, td {
@@ -114,16 +96,6 @@
     th:nth-child(2), td:nth-child(2) { width: 25%; }
     th:nth-child(3), td:nth-child(3) { width: 25%; }
     th:nth-child(4), td:nth-child(4) { width: 20%; text-align: right; }
-
-    /* scrollbar bonita */
-    tbody::-webkit-scrollbar {
-      width: 6px;
-    }
-
-    tbody::-webkit-scrollbar-thumb {
-      background: #333;
-      border-radius: 10px;
-    }
   }
 
   /* Mobile */
