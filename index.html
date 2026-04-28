@@ -112,16 +112,11 @@ const acesso = params.get("acesso") ?? "";
 // 🔐 SUA API
 const API = "https://script.google.com/macros/s/AKfycbwodxFX0-pXJAGwqyj6GzjATzO1L51y6GYEWKWpEbgp3HnQESIsczgGgbEiePEgipcgcA/exec";
 
-// 💰 REGRA PERSONALIZADA
+// 💰 FORMATAÇÃO DE MOEDA
 function formatarMoeda(valor) {
   const numero = parseFloat(valor);
 
   if (isNaN(numero)) return "R$ 0,00";
-
-  // NÃO formatar 1 e 2
-  if (numero === 1 || numero === 2) {
-    return numero;
-  }
 
   return numero.toLocaleString("pt-BR", {
     style: "currency",
@@ -146,11 +141,13 @@ function carregarDados() {
 
       tabela.innerHTML = "";
 
+      // 🔒 acesso inválido
       if (data.erro) {
         tabela.innerHTML = "<tr><td colspan='4'>🔒 Acesso negado</td></tr>";
         return;
       }
 
+      // 🔄 inverter ordem
       data.reverse().forEach(item => {
 
         const tr = document.createElement("tr");
@@ -159,7 +156,13 @@ function carregarDados() {
           <td>${formatarData(item.dataHora)}</td>
           <td>${item.barbeiro ?? ""}</td>
           <td>${item.AA ?? ""}</td>
-          <td>${formatarMoeda(item.AB)}</td>
+          <td>
+            ${
+              item.AA?.toLowerCase() === "assinatura"
+                ? (item.AB ?? "0")
+                : formatarMoeda(item.AB)
+            }
+          </td>
         `;
 
         tabela.appendChild(tr);
@@ -173,6 +176,8 @@ function carregarDados() {
 }
 
 carregarDados();
+
+// 🔄 Atualiza a cada 10s
 setInterval(carregarDados, 10000);
 </script>
 
