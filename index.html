@@ -107,10 +107,29 @@
 <script>
 // 🔗 PEGAR ACESSO DA URL
 const params = new URLSearchParams(window.location.search);
-const acesso = params.get("acesso") || "";
+const acesso = params.get("acesso") ?? "";
 
-// 🔐 SUA API SEGURA
+// 🔐 SUA API
 const API = "https://script.google.com/macros/s/AKfycbwodxFX0-pXJAGwqyj6GzjATzO1L51y6GYEWKWpEbgp3HnQESIsczgGgbEiePEgipcgcA/exec";
+
+// 💰 CORREÇÃO DEFINITIVA DO ZERO
+function formatarMoeda(valor) {
+  const numero = parseFloat(valor);
+
+  if (isNaN(numero)) return "R$ 0,00";
+
+  return numero.toLocaleString("pt-BR", {
+    style: "currency",
+    currency: "BRL"
+  });
+}
+
+// 📅 formatar data
+function formatarData(data) {
+  if (!data) return "";
+  const d = new Date(data);
+  return d.toLocaleString("pt-BR");
+}
 
 function carregarDados() {
 
@@ -134,10 +153,10 @@ function carregarDados() {
         const tr = document.createElement("tr");
 
         tr.innerHTML = `
-          <td>${item.dataHora || ""}</td>
-          <td>${item.barbeiro || ""}</td>
-          <td>${item.AA || ""}</td>
-          <td>${item.AB || ""}</td>
+          <td>${formatarData(item.dataHora)}</td>
+          <td>${item.barbeiro ?? ""}</td>
+          <td>${item.AA ?? ""}</td>
+          <td>${formatarMoeda(item.AB)}</td>
         `;
 
         tabela.appendChild(tr);
