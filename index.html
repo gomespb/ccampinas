@@ -1,117 +1,33 @@
 <!DOCTYPE html>
-<html lang="pt-br">
+<html>
 <head>
 <meta charset="UTF-8">
-<title>Comandas</title>
-
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-<style>
-  body {
-    font-family: Arial;
-    background: #0b0f1a;
-    color: #fff;
-    margin: 0;
-    padding: 15px;
-  }
-
-  h2 {
-    text-align: center;
-  }
-
-  .card {
-    background: #111827;
-    border-radius: 10px;
-    padding: 12px;
-    margin-bottom: 10px;
-  }
-
-  .linha {
-    display: flex;
-    justify-content: space-between;
-    font-size: 14px;
-  }
-
-  .valor {
-    color: #22c55e;
-    font-weight: bold;
-  }
-</style>
+<title>Dados</title>
 </head>
 
 <body>
 
-<h2>Comandas</h2>
-<div id="conteudo"></div>
+<h3>Planilha</h3>
+<div id="dados">Carregando...</div>
 
 <script>
 const URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTlvzX6W8ZPYB2QSicxv6LXWv0Xc1TuhcoSbcCd5JskarjMueLhZzwuTzjPfZXPgNozYrjxdfmOEqIB/pub?gid=85219282&single=true&output=csv";
 
-function parseCSV(texto) {
-  const linhas = texto.split("\n").map(l => l.split(","));
-  return linhas;
-}
+fetch(URL)
+  .then(res => res.text())
+  .then(texto => {
+    const linhas = texto.split("\n");
+    let html = "";
 
-async function carregarDados() {
-  try {
-    const res = await fetch(URL);
-    const texto = await res.text();
-
-    const dados = parseCSV(texto);
-
-    const cabecalho = dados[0];
-
-    const colData = cabecalho.indexOf("Data e Hora");
-    const colBarbeiro = cabecalho.indexOf("Barbeiro");
-    const colForma = cabecalho.indexOf("Forma PG");
-    const colValor = cabecalho.indexOf("Valor");
-
-    const container = document.getElementById("conteudo");
-    container.innerHTML = "";
-
-    // inverter ordem
-    dados.slice(1).reverse().forEach(linha => {
-
-      if (!linha[colBarbeiro]) return;
-
-      let data = linha[colData];
-
-      if (data) {
-        const d = new Date(data);
-        data = isNaN(d) ? data : d.toLocaleString("pt-BR");
-      }
-
-      let valor = parseFloat(linha[colValor]) || 0;
-
-      let valorFormatado = valor <= 2
-        ? valor
-        : valor.toLocaleString("pt-BR", {
-            style: "currency",
-            currency: "BRL"
-          });
-
-      const card = `
-        <div class="card">
-          <div class="linha"><strong>Data:</strong> ${data}</div>
-          <div class="linha"><strong>Barbeiro:</strong> ${linha[colBarbeiro]}</div>
-          <div class="linha"><strong>Forma:</strong> ${linha[colForma]}</div>
-          <div class="linha valor">${valorFormatado}</div>
-        </div>
-      `;
-
-      container.innerHTML += card;
+    linhas.forEach(linha => {
+      html += linha + "<br>";
     });
 
-  } catch (erro) {
-    document.getElementById("conteudo").innerHTML =
-      "<p>Erro ao carregar</p>";
-  }
-}
-
-// atualiza a cada 10s
-setInterval(carregarDados, 10000);
-
-carregarDados();
+    document.getElementById("dados").innerHTML = html;
+  })
+  .catch(() => {
+    document.getElementById("dados").innerHTML = "Erro ao carregar";
+  });
 </script>
 
 </body>
