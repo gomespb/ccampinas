@@ -5,72 +5,17 @@
 <title>Comandas Campinas</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <style>
-  body {
-    font-family: Arial, sans-serif;
-    background: #0b0f1a;
-    color: #fff;
-    text-align: center;
-    margin: 0;
-    padding: 15px;
-  }
-
-  .table-container {
-    width: 100%;
-    overflow-x: auto;
-  }
-
-  table {
-    margin: auto;
-    border-collapse: collapse;
-    width: 100%;
-    max-width: 1000px;
-    background: #121826;
-    border-radius: 10px;
-    overflow: hidden;
-  }
-
-  th {
-    background: #1f2937;
-    color: #00ff88;
-    text-transform: uppercase;
-    font-size: 13px;
-    padding: 12px;
-    text-align: left;
-  }
-
-  td {
-    color: #ffffff !important;
-    padding: 12px;
-    border-bottom: 1px solid #1f2937;
-    text-align: left;
-  }
-
-  tr:hover {
-    background: #1a2332;
-  }
-
+  body { font-family: Arial, sans-serif; background: #0b0f1a; color: #fff; text-align: center; margin: 0; padding: 15px; }
+  .table-container { width: 100%; overflow-x: auto; }
+  table { margin: auto; border-collapse: collapse; width: 100%; max-width: 1000px; background: #121826; border-radius: 10px; overflow: hidden; }
+  th { background: #1f2937; color: #00ff88; text-transform: uppercase; font-size: 13px; padding: 12px; text-align: left; }
+  td { color: #ffffff !important; padding: 12px; border-bottom: 1px solid #1f2937; text-align: left; }
+  tr:hover { background: #1a2332; }
   @media (max-width: 600px) {
     thead { display: none; }
-    tr {
-      display: block;
-      margin-bottom: 12px;
-      background: #121826;
-      border-radius: 10px;
-      padding: 10px;
-    }
-    td {
-      display: block;
-      border: none;
-      padding: 6px 0;
-      font-size: 14px;
-    }
-    td::before {
-      font-weight: bold;
-      color: #00ff88;
-      display: block;
-      font-size: 12px;
-      margin-bottom: 2px;
-    }
+    tr { display: block; margin-bottom: 12px; background: #121826; border-radius: 10px; padding: 10px; }
+    td { display: block; border: none; padding: 6px 0; font-size: 14px; }
+    td::before { font-weight: bold; color: #00ff88; display: block; font-size: 12px; margin-bottom: 2px; }
     td:nth-child(1)::before { content: "Data e Hora"; }
     td:nth-child(2)::before { content: "Barbeiro"; }
     td:nth-child(3)::before { content: "Forma PG"; }
@@ -101,7 +46,6 @@
 <script>
 const params = new URLSearchParams(window.location.search);
 const acesso = params.get("acesso") ?? "";
-
 const API = "https://script.google.com/macros/s/AKfycbyHUG9oKBjNZGSgPCdcRt6Kequ5Uo9h9IaF_h0-8eq2aGJZ6jHEfij22p8IgzSHuhM5Mw/exec";
 
 function formatarMoeda(valor) {
@@ -110,46 +54,35 @@ function formatarMoeda(valor) {
   return numero.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 }
 
-// --- FUNÇÃO DE DATA REVISADA PARA CORRIGIR [object Object] ---
 function formatarData(dataRaw) {
   if (!dataRaw) return "---";
-
   let d;
 
-  // 1. Se for o objeto do Google {year, month, day...}
+  // Se for objeto do Google {year, month, day...}
   if (typeof dataRaw === 'object' && dataRaw !== null && !dataRaw.getTime) {
     const ano = dataRaw.year || new Date().getFullYear();
     const mes = (dataRaw.month !== undefined) ? dataRaw.month : new Date().getMonth();
     const dia = dataRaw.day || 1;
     const hora = dataRaw.hours || dataRaw.hour || 0;
     const min = dataRaw.minutes || dataRaw.minute || 0;
-    const seg = dataRaw.seconds || dataRaw.second || 0;
-    d = new Date(ano, mes, dia, hora, min, seg);
+    d = new Date(ano, mes, dia, hora, min);
   } 
-  // 2. Se for String formatada (Ex: 25/12/2023 14:00:00)
-  else if (typeof dataRaw === "string" && dataRaw.includes("/")) {
-    const partes = dataRaw.split(" ");
-    const dataPart = partes[0];
-    const horaPart = partes[1] || "00:00:00";
-    const [dia, mes, ano] = dataPart.split("/");
-    const [h, m, s] = horaPart.split(":");
-    d = new Date(ano, mes - 1, dia, h, m, s);
-  } 
-  // 3. Data padrão JS ou ISO
   else {
     d = new Date(dataRaw);
   }
 
-  if (isNaN(d.getTime())) return "Data Inválida";
+  if (isNaN(d.getTime())) {
+    // Se ainda assim falhar, retorna o texto bruto se for string
+    return typeof dataRaw === 'string' ? dataRaw : "---";
+  }
 
   const diaF = String(d.getDate()).padStart(2, "0");
   const mesF = String(d.getMonth() + 1).padStart(2, "0");
   const anoF = d.getFullYear();
   const horaF = String(d.getHours()).padStart(2, "0");
   const minF = String(d.getMinutes()).padStart(2, "0");
-  const segF = String(d.getSeconds()).padStart(2, "0");
 
-  return `${diaF}/${mesF}/${anoF} ${horaF}:${minF}:${segF}`;
+  return `${diaF}/${mesF}/${anoF} ${horaF}:${minF}`;
 }
 
 function carregarDados() {
@@ -158,33 +91,36 @@ function carregarDados() {
   fetch(`${API}?acesso=${acesso}`)
     .then(res => res.json())
     .then(data => {
-      tabela.innerHTML = "";
-
       if (data.erro) {
         tabela.innerHTML = "<tr><td colspan='4'>🔒 Acesso negado</td></tr>";
         return;
       }
 
-      if (!Array.isArray(data) || data.length === 0) {
-        tabela.innerHTML = "<tr><td colspan='4'>Nenhum registro encontrado.</td></tr>";
-        return;
-      }
+      tabela.innerHTML = "";
+      
+      // Inverte para ver os mais recentes primeiro
+      const lista = Array.isArray(data) ? data.reverse() : [];
 
-      data.reverse().forEach(item => {
-        // Mapeia possíveis nomes de colunas de data
-        const dataHoraOriginal = item.dataHora || item["Data e Hora"] || item.timestamp || item.Data || "";
+      lista.forEach(item => {
+        // LÓGICA CORINGA: Procura qualquer coluna que sugira ser a data
+        let dataValor = null;
+        for (let chave in item) {
+          const c = chave.toLowerCase();
+          if (c.includes("data") || c.includes("time") || c.includes("carimbo") || c.includes("timestamp")) {
+            dataValor = item[chave];
+            break;
+          }
+        }
+        // Se não achou por nome, tenta a primeira propriedade do objeto
+        if (dataValor === null) dataValor = Object.values(item)[0];
 
         const tr = document.createElement("tr");
         tr.innerHTML = `
-          <td>${formatarData(dataHoraOriginal)}</td>
-          <td>${item.barbeiro ?? ""}</td>
-          <td>${item.AA ?? ""}</td>
+          <td>${formatarData(dataValor)}</td>
+          <td>${item.barbeiro ?? "---"}</td>
+          <td>${item.AA ?? "---"}</td>
           <td>
-            ${
-              item.AA?.toLowerCase() === "assinatura"
-                ? (item.AB ?? "0")
-                : formatarMoeda(item.AB)
-            }
+            ${item.AA?.toLowerCase() === "assinatura" ? (item.AB ?? "0") : formatarMoeda(item.AB)}
           </td>
         `;
         tabela.appendChild(tr);
@@ -192,12 +128,12 @@ function carregarDados() {
     })
     .catch(err => {
       console.error(err);
-      tabela.innerHTML = "<tr><td colspan='4'>⚠️ Erro ao carregar</td></tr>";
+      tabela.innerHTML = "<tr><td colspan='4'>⚠️ Erro na conexão</td></tr>";
     });
 }
 
 carregarDados();
-setInterval(carregarDados, 10000);
+setInterval(carregarDados, 15000);
 </script>
 
 </body>
