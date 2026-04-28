@@ -61,7 +61,7 @@
     font-size: 12px;
   }
 
-  /* PC */
+  /* PC → tabela */
   @media (min-width: 700px) {
     .cards {
       display: none;
@@ -86,12 +86,13 @@
     }
   }
 
-  /* Mobile */
+  /* Mobile → cards */
   @media (max-width: 699px) {
     table {
       display: none;
     }
   }
+
 </style>
 </head>
 
@@ -169,9 +170,10 @@ function carregarDados() {
         });
       });
 
-      // ordenar mais recente primeiro
+      // ordenar mais recente
       dados.sort((a,b) => b.dataObj - a.dataObj);
 
+      // horário atualização
       document.getElementById("atualizacao").innerText =
         "Atualizado: " + new Date().toLocaleTimeString("pt-BR");
 
