@@ -123,27 +123,22 @@ function formatarMoeda(valor) {
   });
 }
 
-// 📅 DATA CORRIGIDA (ANTI INVALID DATE)
+// 📅 DATA SIMPLES E SEGURA
 function formatarData(data) {
   if (!data) return "";
 
-  let d = new Date(data);
-
-  if (isNaN(d.getTime())) {
-    if (typeof data === "string" && data.includes("/")) {
-      const partes = data.split(" ");
-      const dataPart = partes[0].split("/");
-      const horaPart = partes[1] ? partes[1].split(":") : ["00","00","00"];
-
-      d = new Date(
-        `${dataPart[2]}-${dataPart[1]}-${dataPart[0]}T${horaPart[0]}:${horaPart[1]}:${horaPart[2]}`
-      );
-    }
+  // Se já estiver no formato brasileiro, só retorna
+  if (typeof data === "string" && data.includes("/")) {
+    return data;
   }
 
-  if (isNaN(d.getTime())) return "Data inválida";
+  // Se vier como ISO (Google Script)
+  const d = new Date(data);
+  if (!isNaN(d)) {
+    return d.toLocaleString("pt-BR");
+  }
 
-  return d.toLocaleString("pt-BR");
+  return "";
 }
 
 function carregarDados() {
@@ -156,19 +151,21 @@ function carregarDados() {
 
       tabela.innerHTML = "";
 
-      // 🔒 acesso inválido
       if (data.erro) {
         tabela.innerHTML = "<tr><td colspan='4'>🔒 Acesso negado</td></tr>";
         return;
       }
 
-      // 🔄 inverter ordem
       data.reverse().forEach(item => {
+
+        console.log(item); // 🔍 debug
+
+        const dataHora = item.dataHora || item["Data e Hora"] || "";
 
         const tr = document.createElement("tr");
 
         tr.innerHTML = `
-          <td>${formatarData(item.dataHora)}</td>
+          <td>${formatarData(dataHora)}</td>
           <td>${item.barbeiro ?? ""}</td>
           <td>${item.AA ?? ""}</td>
           <td>
