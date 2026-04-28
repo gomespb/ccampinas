@@ -2,7 +2,7 @@
 <html lang="pt-br">
 <head>
 <meta charset="UTF-8">
-<title>Visualização Planilha</title>
+<title>Comandas Campinas</title>
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
@@ -96,7 +96,7 @@
 
 <body>
 
-<h2>Dados da Planilha</h2>
+<h2>Comandas Campinas</h2>
 
 <div class="table-container">
   <table>
@@ -117,13 +117,17 @@ function carregarDados() {
   fetch(url)
     .then(response => response.text())
     .then(data => {
-      const linhas = data.split("\n");
-      const tabela = document.getElementById("tabela");
 
+      // 🔥 inverte ordem das linhas
+      const linhas = data.split("\n").reverse();
+
+      const tabela = document.getElementById("tabela");
       tabela.innerHTML = "";
 
       linhas.forEach((linha, index) => {
-        if (index === 0) return;
+
+        // 🔥 ignora cabeçalho (agora está no final)
+        if (index === linhas.length - 1) return;
 
         // 🔥 ignora linhas vazias
         if (!linha.trim()) return;
@@ -133,7 +137,7 @@ function carregarDados() {
         const col2 = colunas[1] || "";
         const col7 = colunas[6] || "";
 
-        // 🔥 ignora linhas sem dados reais
+        // 🔥 ignora linhas sem dados
         if (!col2 && !col7) return;
 
         const tr = document.createElement("tr");
