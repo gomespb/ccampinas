@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<title>Visualização Planilha</title>
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<style>
+  body {
+    font-family: Arial;
+    background: #0b0f1a;
+    color: #fff;
+    text-align: center;
+    margin: 0;
+    padding: 15px;
+  }
+
+  .table-container {
+    width: 100%;
+    overflow-x: auto;
+  }
+
+  table {
+    margin: auto;
+    border-collapse: collapse;
+    width: 100%;
+    max-width: 900px;
+    background: #121826;
+    border-radius: 10px;
+    overflow: hidden;
+  }
+
+  /* 🔥 CABEÇALHO VERDE */
+  th {
+    background: #1f2937;
+    color: #00ff88;
+    text-transform: uppercase;
+    font-size: 13px;
+  }
+
+  /* 🔥 CONTEÚDO SEMPRE BRANCO */
+  td {
+    color: #ffffff !important;
+  }
+
+  td, th {
+    padding: 12px;
+    border-bottom: 1px solid #1f2937;
+    text-align: left;
+  }
+
+  tr:hover {
+    background: #1a2332;
+  }
+
+  /* 📱 MOBILE */
+  @media (max-width: 600px) {
+
+    thead {
+      display: none;
+    }
+
+    tr {
+      display: block;
+      margin-bottom: 12px;
+      background: #121826;
+      border-radius: 10px;
+      padding: 10px;
+    }
+
+    td {
+      display: block;
+      border: none;
+      padding: 6px 0;
+      font-size: 14px;
+      color: #ffffff !important;
+    }
+
+    td::before {
+      font-weight: bold;
+      color: #00ff88;
+      display: block;
+      font-size: 12px;
+      margin-bottom: 2px;
+    }
+
+    td:nth-child(1)::before {
+      content: "Coluna 2";
+    }
+
+    td:nth-child(2)::before {
+      content: "Coluna 7";
+    }
+  }
+</style>
+</head>
+
+<body>
+
+<h2>Dados da Planilha</h2>
+
+<div class="table-container">
+  <table>
+    <thead>
+      <tr>
+        <th>Coluna 2</th>
+        <th>Coluna 7</th>
+      </tr>
+    </thead>
+    <tbody id="tabela"></tbody>
+  </table>
+</div>
+
+<script>
+const url = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTlvzX6W8ZPYB2QSicxv6LXWv0Xc1TuhcoSbcCd5JskarjMueLhZzwuTzjPfZXPgNozYrjxdfmOEqIB/pub?gid=85219282&single=true&output=csv";
+
+function carregarDados() {
+  fetch(url)
+    .then(response => response.text())
+    .then(data => {
+      const linhas = data.split("\n");
+      const tabela = document.getElementById("tabela");
+
+      tabela.innerHTML = "";
+
+      linhas.forEach((linha, index) => {
+        if (index === 0) return;
+
+        const colunas = linha.split(",");
+
+        const col2 = colunas[1] || "";
+        const col7 = colunas[6] || "";
+
+        const tr = document.createElement("tr");
+
+        tr.innerHTML = `
+          <td>${col2}</td>
+          <td>${col7}</td>
+        `;
+
+        tabela.appendChild(tr);
+      });
+    })
+    .catch(err => console.error("Erro:", err));
+}
+
+carregarDados();
+
+// 🔄 Atualização automática
+setInterval(() => {
+  carregarDados();
+}, 10000);
+</script>
+
+</body>
+</html>
