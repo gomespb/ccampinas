@@ -110,7 +110,7 @@ const params = new URLSearchParams(window.location.search);
 const acesso = params.get("acesso") ?? "";
 
 // 🔐 SUA API
-const API = "https://script.google.com/macros/s/AKfycbz_7ulD-Ca4tu40j3oiSUh-kSVAHGHTwFAg0lK9Jvy8iB36vbQWOEIyW3Yk1H03fC_Eag/exec";
+const API = "https://script.google.com/macros/s/AKfycbyHUG9oKBjNZGSgPCdcRt6Kequ5Uo9h9IaF_h0-8eq2aGJZ6jHEfij22p8IgzSHuhM5Mw/exec";
 
 // 💰 FORMATAÇÃO DE MOEDA
 function formatarMoeda(valor) {
@@ -123,9 +123,27 @@ function formatarMoeda(valor) {
   });
 }
 
-// 📅 DATA (AGORA SIMPLES E CORRETA)
+// 📅 DATA CORRIGIDA (ANTI INVALID DATE)
 function formatarData(data) {
-  return data || "";
+  if (!data) return "";
+
+  let d = new Date(data);
+
+  if (isNaN(d.getTime())) {
+    if (typeof data === "string" && data.includes("/")) {
+      const partes = data.split(" ");
+      const dataPart = partes[0].split("/");
+      const horaPart = partes[1] ? partes[1].split(":") : ["00","00","00"];
+
+      d = new Date(
+        `${dataPart[2]}-${dataPart[1]}-${dataPart[0]}T${horaPart[0]}:${horaPart[1]}:${horaPart[2]}`
+      );
+    }
+  }
+
+  if (isNaN(d.getTime())) return "Data inválida";
+
+  return d.toLocaleString("pt-BR");
 }
 
 function carregarDados() {
