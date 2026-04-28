@@ -2,7 +2,7 @@
 <html lang="pt-br">
 <head>
 <meta charset="UTF-8">
-<title>Comandas Campinas</title>
+<title>Comandas</title>
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
@@ -40,14 +40,12 @@
     border-radius: 10px;
     padding: 12px;
     margin-bottom: 10px;
-    box-shadow: 0 0 5px rgba(0,0,0,0.4);
   }
 
   .linha {
     display: flex;
     justify-content: space-between;
     margin: 4px 0;
-    font-size: 14px;
   }
 
   .valor {
@@ -62,11 +60,8 @@
     text-align: right;
   }
 
-  /* PC */
   @media (min-width: 700px) {
-    .cards {
-      display: none;
-    }
+    .cards { display: none; }
 
     table {
       width: 100%;
@@ -77,14 +72,9 @@
     th, td {
       padding: 10px;
       border-bottom: 1px solid #333;
-      text-align: left;
-      word-wrap: break-word;
     }
 
-    th {
-      background: #111827;
-      font-weight: 600;
-    }
+    th { background: #111827; }
 
     th:nth-child(1), td:nth-child(1) { width: 30%; }
     th:nth-child(2), td:nth-child(2) { width: 25%; }
@@ -92,11 +82,8 @@
     th:nth-child(4), td:nth-child(4) { width: 20%; text-align: right; }
   }
 
-  /* Mobile */
   @media (max-width: 699px) {
-    table {
-      display: none;
-    }
+    table { display: none; }
   }
 </style>
 </head>
@@ -111,10 +98,8 @@
     <div id="atualizacao">Atualizando...</div>
   </div>
 
-  <!-- MOBILE -->
   <div class="cards" id="cards"></div>
 
-  <!-- PC -->
   <table>
     <thead>
       <tr>
@@ -130,7 +115,7 @@
 </div>
 
 <script>
-const URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTlvzX6W8ZPYB2QSicxv6LXWv0Xc1TuhcoSbcCd5JskarjMueLhZzwuTzjPfZXPgNozYrjxdfmOEqIB/pub?gid=85219282&single=true&output=csv";
+const URL = "https://script.google.com/macros/s/AKfycbwaG5YkcCTPE1yUSyFL_GQTtSKs94GTUCYfcqG1gYnpndewdQWCGABBupS88v8fKwfpzg/exec";
 
 function parseDataBR(dataStr) {
   if (!dataStr) return new Date(0);
@@ -163,24 +148,11 @@ function formatarValor(v) {
 
 function carregarDados() {
   fetch(URL)
-    .then(res => res.text())
-    .then(texto => {
-      const linhas = texto.split("\n");
+    .then(res => res.json())
+    .then(dados => {
 
-      let dados = [];
-
-      linhas.forEach((linha, index) => {
-        if (index === 0) return;
-
-        const col = linha.split(",");
-
-        dados.push({
-          data: col[1],
-          barbeiro: col[6],
-          forma: col[26],
-          valor: parseFloat(col[27]) || 0,
-          dataObj: parseDataBR(col[1])
-        });
+      dados.forEach(item => {
+        item.dataObj = parseDataBR(item.data);
       });
 
       dados.sort((a,b) => b.dataObj - a.dataObj);
@@ -188,7 +160,7 @@ function carregarDados() {
       document.getElementById("atualizacao").innerText =
         "Atualizado: " + new Date().toLocaleTimeString("pt-BR");
 
-      // MOBILE (corrigido)
+      // MOBILE
       let htmlCards = "";
       dados.forEach(item => {
         const v = formatarValor(item.valor);
