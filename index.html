@@ -115,7 +115,39 @@
 </div>
 
 <script>
-const URL = "https://script.google.com/macros/s/AKfycbxwdjHJgij5QtKZ9ehB5Z0p-gU5sYoXvsDmpip8_NgxoCOW1FySKcGUSQrwcVsX_jGFvw/exec";
+const URL = "function doGet() {
+  const sheet = SpreadsheetApp.openById("1ZTT7ETr51d7CHdiZDbbeEQyGaU1TxGA1CtdQ-EzN3Jw");
+  const aba = sheet.getSheets()[0];
+  const dados = aba.getDataRange().getValues();
+
+  const resultado = [];
+
+  for (let i = 1; i < dados.length; i++) {
+    const linha = dados[i];
+
+    const barbeiro = linha[6];
+    if (!barbeiro) continue;
+
+    // 🔥 SIMPLES: sempre converte e formata
+    const data = new Date(linha[1]);
+    const dataFormatada = Utilities.formatDate(
+      data,
+      "America/Sao_Paulo",
+      "dd/MM/yyyy HH:mm:ss"
+    );
+
+    resultado.push({
+      data: dataFormatada,
+      barbeiro: barbeiro.toString(),
+      forma: linha[26] ? linha[26].toString() : "",
+      valor: Number(linha[27]) || 0
+    });
+  }
+
+  return ContentService
+    .createTextOutput(JSON.stringify(resultado))
+    .setMimeType(ContentService.MimeType.JSON);
+}";
 
 function parseDataBR(dataStr) {
   if (!dataStr) return new Date(0);
