@@ -8,6 +8,7 @@
 <body>
 
 <h3>Planilha</h3>
+
 <div id="dados">Carregando...</div>
 
 <script>
@@ -19,15 +20,20 @@ fetch(URL)
     const linhas = texto.split("\n");
     let html = "";
 
-    linhas.forEach(linha => {
+    // ✅ Cabeçalho
+    html += "<b>Data | Barbeiro | FormaPG | Valor</b><br>";
+
+    linhas.forEach((linha, index) => {
+      if (index === 0) return; // pula cabeçalho da planilha
+
       const colunas = linha.split(",");
 
-      const c2  = colunas[1]  || "";
-      const c7  = colunas[6]  || "";
-      const cAA = colunas[26] || "";
-      const cAB = colunas[27] || "";
+      const data = colunas[1]  || "";
+      const barbeiro = colunas[6]  || "";
+      const forma = colunas[26] || "";
+      const valor = colunas[27] || "";
 
-      html += c2 + " | " + c7 + " | " + cAA + " | " + cAB + "<br>";
+      html += data + " | " + barbeiro + " | " + forma + " | " + valor + "<br>";
     });
 
     document.getElementById("dados").innerHTML = html;
