@@ -25,7 +25,7 @@
     margin: auto;
     border-collapse: collapse;
     width: 100%;
-    max-width: 900px;
+    max-width: 1000px;
     background: #121826;
     border-radius: 10px;
     overflow: hidden;
@@ -68,7 +68,6 @@
       border: none;
       padding: 6px 0;
       font-size: 14px;
-      color: #ffffff !important;
     }
 
     td::before {
@@ -81,6 +80,8 @@
 
     td:nth-child(1)::before { content: "Data e Hora"; }
     td:nth-child(2)::before { content: "Barbeiro"; }
+    td:nth-child(3)::before { content: "Coluna AA"; }
+    td:nth-child(4)::before { content: "Coluna AB"; }
   }
 </style>
 </head>
@@ -95,6 +96,8 @@
       <tr>
         <th>Data e Hora</th>
         <th>Barbeiro</th>
+        <th>AA</th>
+        <th>AB</th>
       </tr>
     </thead>
     <tbody id="tabela"></tbody>
@@ -104,22 +107,17 @@
 <script>
 const url = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTlvzX6W8ZPYB2QSicxv6LXWv0Xc1TuhcoSbcCd5JskarjMueLhZzwuTzjPfZXPgNozYrjxdfmOEqIB/pub?gid=85219282&single=true&output=csv";
 
-// 🔗 PEGAR ACESSO DA URL
 const params = new URLSearchParams(window.location.search);
 const acesso = params.get("acesso") || "";
 
-// 🔐 MAPA DE ACESSO → NOME REAL
 const acessos = {
-  "Claudia303132": "Claudia",
-  "Obert5050": "Obert",
-  "Tiago2727": "Tiago",
+  "joao1234": "João",
+  "carlos5678": "Carlos",
   "admin9999": "admin"
 };
 
-// 🔍 DESCOBRE O FILTRO REAL
 const filtro = acessos[acesso] || null;
 
-// 🔥 NORMALIZAR TEXTO (ignora acento e maiúsculas)
 function normalizar(texto) {
   return texto
     .toLowerCase()
@@ -131,9 +129,8 @@ function carregarDados() {
 
   const tabela = document.getElementById("tabela");
 
-  // 🔒 BLOQUEIA ACESSO INVÁLIDO
   if (!filtro) {
-    tabela.innerHTML = "<tr><td colspan='2'>🔒 Acesso inválido</td></tr>";
+    tabela.innerHTML = "<tr><td colspan='4'>🔒 Acesso inválido</td></tr>";
     return;
   }
 
@@ -153,10 +150,11 @@ function carregarDados() {
 
         const col2 = colunas[1] || "";
         const col7 = colunas[6] || "";
+        const colAA = colunas[26] || "";
+        const colAB = colunas[27] || "";
 
         if (!col2 && !col7) return;
 
-        // 🔥 FILTRO
         if (filtro !== "admin") {
           if (!normalizar(col7).includes(normalizar(filtro))) return;
         }
@@ -166,6 +164,8 @@ function carregarDados() {
         tr.innerHTML = `
           <td>${col2}</td>
           <td>${col7}</td>
+          <td>${colAA}</td>
+          <td>${colAB}</td>
         `;
 
         tabela.appendChild(tr);
@@ -175,8 +175,6 @@ function carregarDados() {
 }
 
 carregarDados();
-
-// 🔄 Atualiza a cada 10 segundos
 setInterval(carregarDados, 10000);
 </script>
 
