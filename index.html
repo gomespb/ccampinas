@@ -62,11 +62,6 @@
     text-align: right;
   }
 
-  .data {
-    color: #9ca3af;
-    font-size: 12px;
-  }
-
   /* PC */
   @media (min-width: 700px) {
     .cards {
@@ -76,7 +71,7 @@
     table {
       width: 100%;
       border-collapse: collapse;
-      table-layout: fixed; /* mantém alinhamento */
+      table-layout: fixed;
     }
 
     th, td {
@@ -91,7 +86,6 @@
       font-weight: 600;
     }
 
-    /* larguras fixas */
     th:nth-child(1), td:nth-child(1) { width: 30%; }
     th:nth-child(2), td:nth-child(2) { width: 25%; }
     th:nth-child(3), td:nth-child(3) { width: 25%; }
@@ -194,17 +188,17 @@ function carregarDados() {
       document.getElementById("atualizacao").innerText =
         "Atualizado: " + new Date().toLocaleTimeString("pt-BR");
 
-      // MOBILE
+      // MOBILE (corrigido)
       let htmlCards = "";
       dados.forEach(item => {
         const v = formatarValor(item.valor);
 
         htmlCards += `
           <div class="card">
-            <div class="data">${item.data}</div>
-            <div class="linha"><strong>${item.barbeiro}</strong></div>
-            <div class="linha">${item.forma}</div>
-            <div class="${v.classe}">${v.texto}</div>
+            <div class="linha"><span>Data:</span><span>${item.data}</span></div>
+            <div class="linha"><span>Barbeiro:</span><strong>${item.barbeiro}</strong></div>
+            <div class="linha"><span>Forma:</span><span>${item.forma}</span></div>
+            <div class="linha"><span>Valor:</span><span class="${v.classe}">${v.texto}</span></div>
           </div>
         `;
       });
