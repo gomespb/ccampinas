@@ -115,7 +115,6 @@ const API = "https://script.google.com/macros/s/AKfycbwodxFX0-pXJAGwqyj6GzjATzO1
 // 💰 FORMATAÇÃO DE MOEDA
 function formatarMoeda(valor) {
   const numero = parseFloat(valor);
-
   if (isNaN(numero)) return "R$ 0,00";
 
   return numero.toLocaleString("pt-BR", {
@@ -124,10 +123,26 @@ function formatarMoeda(valor) {
   });
 }
 
-// 📅 formatar data
+// 📅 DATA CORRIGIDA (ANTI INVALID DATE)
 function formatarData(data) {
   if (!data) return "";
-  const d = new Date(data);
+
+  let d = new Date(data);
+
+  if (isNaN(d.getTime())) {
+    if (typeof data === "string" && data.includes("/")) {
+      const partes = data.split(" ");
+      const dataPart = partes[0].split("/");
+      const horaPart = partes[1] ? partes[1].split(":") : ["00","00","00"];
+
+      d = new Date(
+        `${dataPart[2]}-${dataPart[1]}-${dataPart[0]}T${horaPart[0]}:${horaPart[1]}:${horaPart[2]}`
+      );
+    }
+  }
+
+  if (isNaN(d.getTime())) return "Data inválida";
+
   return d.toLocaleString("pt-BR");
 }
 
