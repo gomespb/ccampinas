@@ -3,12 +3,10 @@
 <head>
 <meta charset="UTF-8">
 <title>Comandas Campinas</title>
-
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
 <style>
   body {
-    font-family: Arial;
+    font-family: Arial, sans-serif;
     background: #0b0f1a;
     color: #fff;
     text-align: center;
@@ -36,13 +34,12 @@
     color: #00ff88;
     text-transform: uppercase;
     font-size: 13px;
+    padding: 12px;
+    text-align: left;
   }
 
   td {
     color: #ffffff !important;
-  }
-
-  td, th {
     padding: 12px;
     border-bottom: 1px solid #1f2937;
     text-align: left;
@@ -54,7 +51,6 @@
 
   @media (max-width: 600px) {
     thead { display: none; }
-
     tr {
       display: block;
       margin-bottom: 12px;
@@ -62,14 +58,12 @@
       border-radius: 10px;
       padding: 10px;
     }
-
     td {
       display: block;
       border: none;
       padding: 6px 0;
       font-size: 14px;
     }
-
     td::before {
       font-weight: bold;
       color: #00ff88;
@@ -77,7 +71,6 @@
       font-size: 12px;
       margin-bottom: 2px;
     }
-
     td:nth-child(1)::before { content: "Data e Hora"; }
     td:nth-child(2)::before { content: "Barbeiro"; }
     td:nth-child(3)::before { content: "Forma PG"; }
@@ -85,7 +78,6 @@
   }
 </style>
 </head>
-
 <body>
 
 <h2>Comandas Campinas 🔐</h2>
@@ -100,56 +92,50 @@
         <th>Valor</th>
       </tr>
     </thead>
-    <tbody id="tabela"></tbody>
+    <tbody id="tabela">
+      <tr><td colspan="4">Carregando dados...</td></tr>
+    </tbody>
   </table>
 </div>
 
 <script>
-// 🔗 PEGAR ACESSO DA URL
 const params = new URLSearchParams(window.location.search);
 const acesso = params.get("acesso") ?? "";
 
-// 🔐 SUA API
 const API = "https://script.google.com/macros/s/AKfycbyHUG9oKBjNZGSgPCdcRt6Kequ5Uo9h9IaF_h0-8eq2aGJZ6jHEfij22p8IgzSHuhM5Mw/exec";
 
-// 💰 FORMATAÇÃO DE MOEDA
 function formatarMoeda(valor) {
   const numero = parseFloat(valor);
   if (isNaN(numero)) return "R$ 0,00";
-
-  return numero.toLocaleString("pt-BR", {
-    style: "currency",
-    currency: "BRL"
-  });
+  return numero.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 }
 
-// 📅 DATA AJUSTADA (COM HORA GARANTIDA)
-function formatarData(data) {
-  if (!data) return "";
+// --- FUNÇÃO DE DATA CORRIGIDA ---
+function formatarData(dataRaw) {
+  if (!dataRaw) return "---";
 
   let d;
 
-  // formato BR
-  if (typeof data === "string" && data.includes("/")) {
-    const [dataPart, horaPart = "00:00:00"] = data.split(" ");
+  // Tenta tratar se for string manual (DD/MM/AAAA)
+  if (typeof dataRaw === "string" && dataRaw.includes("/")) {
+    const partes = dataRaw.split(" ");
+    const dataPart = partes[0];
+    const horaPart = partes[1] || "00:00:00";
+    
     const [dia, mes, ano] = dataPart.split("/");
     const [h, m, s] = horaPart.split(":");
-
     d = new Date(ano, mes - 1, dia, h, m, s);
   } else {
-    // formato ISO (Google)
-    d = new Date(data);
+    // Tenta converter objeto Date do Google ou ISO
+    d = new Date(dataRaw);
   }
 
-  if (isNaN(d.getTime())) return "";
-
-  // 🔥 ajuste de fuso (remova se já estiver correto)
-  d.setHours(d.getHours() - 3);
+  // Se a data for inválida, retorna o texto original para não ficar em branco
+  if (isNaN(d.getTime())) return dataRaw;
 
   const dia = String(d.getDate()).padStart(2, "0");
   const mes = String(d.getMonth() + 1).padStart(2, "0");
   const ano = d.getFullYear();
-
   const hora = String(d.getHours()).padStart(2, "0");
   const min = String(d.getMinutes()).padStart(2, "0");
   const seg = String(d.getSeconds()).padStart(2, "0");
@@ -158,13 +144,11 @@ function formatarData(data) {
 }
 
 function carregarDados() {
-
   const tabela = document.getElementById("tabela");
 
   fetch(`${API}?acesso=${acesso}`)
     .then(res => res.json())
     .then(data => {
-
       tabela.innerHTML = "";
 
       if (data.erro) {
@@ -172,14 +156,18 @@ function carregarDados() {
         return;
       }
 
-      data.reverse().forEach(item => {
+      if (data.length === 0) {
+        tabela.innerHTML = "<tr><td colspan='4'>Nenhum registro encontrado.</td></tr>";
+        return;
+      }
 
-        const dataHora = item.dataHora || item["Data e Hora"] || item.timestamp;
+      data.reverse().forEach(item => {
+        // Tenta encontrar a data em diferentes nomes de coluna possíveis
+        const dataHoraOriginal = item.dataHora || item["Data e Hora"] || item.timestamp || item.Data || "";
 
         const tr = document.createElement("tr");
-
         tr.innerHTML = `
-          <td>${formatarData(dataHora)}</td>
+          <td>${formatarData(dataHoraOriginal)}</td>
           <td>${item.barbeiro ?? ""}</td>
           <td>${item.AA ?? ""}</td>
           <td>
@@ -190,10 +178,8 @@ function carregarDados() {
             }
           </td>
         `;
-
         tabela.appendChild(tr);
       });
-
     })
     .catch(err => {
       console.error(err);
@@ -201,9 +187,8 @@ function carregarDados() {
     });
 }
 
+// Inicia e define o intervalo
 carregarDados();
-
-// 🔄 Atualiza a cada 10s
 setInterval(carregarDados, 10000);
 </script>
 
