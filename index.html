@@ -104,11 +104,22 @@
 <script>
 const url = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTlvzX6W8ZPYB2QSicxv6LXWv0Xc1TuhcoSbcCd5JskarjMueLhZzwuTzjPfZXPgNozYrjxdfmOEqIB/pub?gid=85219282&single=true&output=csv";
 
-// 🔗 PEGAR FILTRO DA URL
+// 🔗 PEGAR ACESSO DA URL
 const params = new URLSearchParams(window.location.search);
-const filtro = params.get("barbeiro") || "";
+const acesso = params.get("acesso") || "";
 
-// 🔥 FUNÇÃO PRA IGNORAR ACENTOS E MAIÚSCULAS
+// 🔐 MAPA DE ACESSO → NOME REAL
+const acessos = {
+  "Claudia303132": "Claudia",
+  "Obert5050": "Obert",
+  "Tiago2727": "Tiago",
+  "admin9999": "admin"
+};
+
+// 🔍 DESCOBRE O FILTRO REAL
+const filtro = acessos[acesso] || null;
+
+// 🔥 NORMALIZAR TEXTO (ignora acento e maiúsculas)
 function normalizar(texto) {
   return texto
     .toLowerCase()
@@ -117,13 +128,20 @@ function normalizar(texto) {
 }
 
 function carregarDados() {
+
+  const tabela = document.getElementById("tabela");
+
+  // 🔒 BLOQUEIA ACESSO INVÁLIDO
+  if (!filtro) {
+    tabela.innerHTML = "<tr><td colspan='2'>🔒 Acesso inválido</td></tr>";
+    return;
+  }
+
   fetch(url)
     .then(response => response.text())
     .then(data => {
 
       const linhas = data.split("\n").reverse();
-
-      const tabela = document.getElementById("tabela");
       tabela.innerHTML = "";
 
       linhas.forEach((linha, index) => {
@@ -138,8 +156,10 @@ function carregarDados() {
 
         if (!col2 && !col7) return;
 
-        // 🔥 FILTRO VIA LINK
-        if (filtro && !normalizar(col7).includes(normalizar(filtro))) return;
+        // 🔥 FILTRO
+        if (filtro !== "admin") {
+          if (!normalizar(col7).includes(normalizar(filtro))) return;
+        }
 
         const tr = document.createElement("tr");
 
