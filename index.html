@@ -31,7 +31,6 @@
     overflow: hidden;
   }
 
-  /* 🔥 CABEÇALHO VERDE */
   th {
     background: #1f2937;
     color: #00ff88;
@@ -39,7 +38,6 @@
     font-size: 13px;
   }
 
-  /* 🔥 CONTEÚDO SEMPRE BRANCO */
   td {
     color: #ffffff !important;
   }
@@ -127,10 +125,16 @@ function carregarDados() {
       linhas.forEach((linha, index) => {
         if (index === 0) return;
 
+        // 🔥 ignora linhas vazias
+        if (!linha.trim()) return;
+
         const colunas = linha.split(",");
 
         const col2 = colunas[1] || "";
         const col7 = colunas[6] || "";
+
+        // 🔥 ignora linhas sem dados reais
+        if (!col2 && !col7) return;
 
         const tr = document.createElement("tr");
 
