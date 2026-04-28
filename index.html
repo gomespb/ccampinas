@@ -8,69 +8,122 @@
 
 <style>
   body {
-    font-family: Arial;
+    font-family: Arial, sans-serif;
     margin: 0;
-    padding: 10px;
     background: #0b0f1a;
     color: #fff;
   }
 
-  h3 {
+  header {
+    background: #111827;
+    padding: 15px;
     text-align: center;
+    font-size: 18px;
+    font-weight: bold;
   }
 
-  table {
-    width: 100%;
-    border-collapse: collapse;
+  .container {
+    padding: 10px;
+    max-width: 900px;
+    margin: auto;
   }
 
-  th, td {
-    padding: 8px;
-    text-align: left;
-    border-bottom: 1px solid #333;
+  .topo {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 10px;
     font-size: 14px;
   }
 
-  th {
+  .card {
     background: #111827;
+    border-radius: 10px;
+    padding: 12px;
+    margin-bottom: 10px;
+    box-shadow: 0 0 5px rgba(0,0,0,0.4);
   }
 
-  tr:nth-child(even) {
-    background: #111827;
+  .linha {
+    display: flex;
+    justify-content: space-between;
+    margin: 4px 0;
+    font-size: 14px;
   }
 
   .valor {
     color: #22c55e;
     font-weight: bold;
+    font-size: 16px;
   }
 
-  @media (max-width: 600px) {
+  .data {
+    color: #9ca3af;
+    font-size: 12px;
+  }
+
+  /* PC → tabela */
+  @media (min-width: 700px) {
+    .cards {
+      display: none;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
     th, td {
-      font-size: 12px;
-      padding: 6px;
+      padding: 10px;
+      border-bottom: 1px solid #333;
+    }
+
+    th {
+      background: #111827;
+    }
+
+    .valor {
+      font-size: 14px;
     }
   }
-</style>
 
+  /* Mobile → cards */
+  @media (max-width: 699px) {
+    table {
+      display: none;
+    }
+  }
+
+</style>
 </head>
 
 <body>
 
-<h3>Comandas</h3>
+<header>Comandas</header>
 
-<table>
-  <thead>
-    <tr>
-      <th>Data</th>
-      <th>Barbeiro</th>
-      <th>FormaPG</th>
-      <th>Valor</th>
-    </tr>
-  </thead>
-  <tbody id="dados">
-    <tr><td colspan="4">Carregando...</td></tr>
-  </tbody>
-</table>
+<div class="container">
+
+  <div class="topo">
+    <div id="total">Total: R$ 0,00</div>
+    <div id="atualizacao">Atualizando...</div>
+  </div>
+
+  <!-- MOBILE -->
+  <div class="cards" id="cards"></div>
+
+  <!-- PC -->
+  <table>
+    <thead>
+      <tr>
+        <th>Data</th>
+        <th>Barbeiro</th>
+        <th>FormaPG</th>
+        <th>Valor</th>
+      </tr>
+    </thead>
+    <tbody id="tabela"></tbody>
+  </table>
+
+</div>
 
 <script>
 const URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTlvzX6W8ZPYB2QSicxv6LXWv0Xc1TuhcoSbcCd5JskarjMueLhZzwuTzjPfZXPgNozYrjxdfmOEqIB/pub?gid=85219282&single=true&output=csv";
@@ -78,7 +131,6 @@ const URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTlvzX6W8ZPYB2QSicx
 function parseDataBR(dataStr) {
   if (!dataStr) return new Date(0);
 
-  // tenta formato dd/mm/yyyy hh:mm:ss
   const partes = dataStr.split(" ");
   if (partes.length >= 2) {
     const [dia, mes, ano] = partes[0].split("/");
@@ -89,6 +141,14 @@ function parseDataBR(dataStr) {
   return new Date(dataStr);
 }
 
+function formatarValor(v) {
+  const num = parseFloat(v) || 0;
+  return num.toLocaleString("pt-BR", {
+    style: "currency",
+    currency: "BRL"
+  });
+}
+
 function carregarDados() {
   fetch(URL)
     .then(res => res.text())
@@ -96,46 +156,72 @@ function carregarDados() {
       const linhas = texto.split("\n");
 
       let dados = [];
+      let total = 0;
 
       linhas.forEach((linha, index) => {
         if (index === 0) return;
 
-        const colunas = linha.split(",");
+        const col = linha.split(",");
+
+        const valor = parseFloat(col[27]) || 0;
+        total += valor;
 
         dados.push({
-          data: colunas[1]  || "",
-          barbeiro: colunas[6]  || "",
-          forma: colunas[26] || "",
-          valor: colunas[27] || "",
-          dataObj: parseDataBR(colunas[1])
+          data: col[1],
+          barbeiro: col[6],
+          forma: col[26],
+          valor: valor,
+          dataObj: parseDataBR(col[1])
         });
       });
 
-      // 🔥 ordenar mais recente primeiro
-      dados.sort((a, b) => b.dataObj - a.dataObj);
+      // ordenar mais recente
+      dados.sort((a,b) => b.dataObj - a.dataObj);
 
-      let html = "";
+      // atualizar total
+      document.getElementById("total").innerText =
+        "Total: " + formatarValor(total);
 
+      document.getElementById("atualizacao").innerText =
+        "Atualizado: " + new Date().toLocaleTimeString("pt-BR");
+
+      // MOBILE (cards)
+      let htmlCards = "";
       dados.forEach(item => {
-        html += `
+        htmlCards += `
+          <div class="card">
+            <div class="data">${item.data}</div>
+            <div class="linha"><strong>${item.barbeiro}</strong></div>
+            <div class="linha">${item.forma}</div>
+            <div class="valor">${formatarValor(item.valor)}</div>
+          </div>
+        `;
+      });
+
+      document.getElementById("cards").innerHTML = htmlCards;
+
+      // PC (tabela)
+      let htmlTabela = "";
+      dados.forEach(item => {
+        htmlTabela += `
           <tr>
             <td>${item.data}</td>
             <td>${item.barbeiro}</td>
             <td>${item.forma}</td>
-            <td class="valor">${item.valor}</td>
+            <td class="valor">${formatarValor(item.valor)}</td>
           </tr>
         `;
       });
 
-      document.getElementById("dados").innerHTML = html;
+      document.getElementById("tabela").innerHTML = htmlTabela;
+
     })
     .catch(() => {
-      document.getElementById("dados").innerHTML =
-        "<tr><td colspan='4'>Erro ao carregar</td></tr>";
+      document.getElementById("cards").innerHTML = "Erro ao carregar";
     });
 }
 
-// atualização automática
+// auto atualização
 setInterval(carregarDados, 10000);
 
 // inicial
