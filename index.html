@@ -52,12 +52,8 @@
     background: #1a2332;
   }
 
-  /* 📱 MOBILE */
   @media (max-width: 600px) {
-
-    thead {
-      display: none;
-    }
+    thead { display: none; }
 
     tr {
       display: block;
@@ -83,13 +79,8 @@
       margin-bottom: 2px;
     }
 
-    td:nth-child(1)::before {
-      content: "Coluna 2";
-    }
-
-    td:nth-child(2)::before {
-      content: "Coluna 7";
-    }
+    td:nth-child(1)::before { content: "Data e Hora"; }
+    td:nth-child(2)::before { content: "Barbeiro"; }
   }
 </style>
 </head>
@@ -113,12 +104,23 @@
 <script>
 const url = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTlvzX6W8ZPYB2QSicxv6LXWv0Xc1TuhcoSbcCd5JskarjMueLhZzwuTzjPfZXPgNozYrjxdfmOEqIB/pub?gid=85219282&single=true&output=csv";
 
+// 🔗 PEGAR FILTRO DA URL
+const params = new URLSearchParams(window.location.search);
+const filtro = params.get("barbeiro") || "";
+
+// 🔥 FUNÇÃO PRA IGNORAR ACENTOS E MAIÚSCULAS
+function normalizar(texto) {
+  return texto
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "");
+}
+
 function carregarDados() {
   fetch(url)
     .then(response => response.text())
     .then(data => {
 
-      // 🔥 inverte ordem das linhas
       const linhas = data.split("\n").reverse();
 
       const tabela = document.getElementById("tabela");
@@ -126,10 +128,7 @@ function carregarDados() {
 
       linhas.forEach((linha, index) => {
 
-        // 🔥 ignora cabeçalho (agora está no final)
         if (index === linhas.length - 1) return;
-
-        // 🔥 ignora linhas vazias
         if (!linha.trim()) return;
 
         const colunas = linha.split(",");
@@ -137,8 +136,10 @@ function carregarDados() {
         const col2 = colunas[1] || "";
         const col7 = colunas[6] || "";
 
-        // 🔥 ignora linhas sem dados
         if (!col2 && !col7) return;
+
+        // 🔥 FILTRO VIA LINK
+        if (filtro && !normalizar(col7).includes(normalizar(filtro))) return;
 
         const tr = document.createElement("tr");
 
@@ -155,10 +156,8 @@ function carregarDados() {
 
 carregarDados();
 
-// 🔄 Atualização automática
-setInterval(() => {
-  carregarDados();
-}, 10000);
+// 🔄 Atualiza a cada 10 segundos
+setInterval(carregarDados, 10000);
 </script>
 
 </body>
