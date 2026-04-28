@@ -24,7 +24,7 @@
 
   .container {
     padding: 10px;
-    max-width: 900px;
+    max-width: 1100px;
     margin: auto;
   }
 
@@ -35,17 +35,32 @@
     font-size: 14px;
   }
 
-  .card {
-    background: #111827;
-    border-radius: 10px;
-    padding: 12px;
-    margin-bottom: 10px;
+  /* 🔥 TABELA PERFEITA */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    table-layout: fixed;
   }
 
-  .linha {
-    display: flex;
-    justify-content: space-between;
-    margin: 4px 0;
+  th, td {
+    padding: 10px;
+    border-bottom: 1px solid #333;
+    text-align: left;
+    white-space: nowrap;
+  }
+
+  th {
+    background: #111827;
+    font-weight: bold;
+  }
+
+  /* 🔥 LARGURAS FIXAS */
+  th:nth-child(1), td:nth-child(1) { width: 30%; }
+  th:nth-child(2), td:nth-child(2) { width: 25%; }
+  th:nth-child(3), td:nth-child(3) { width: 25%; }
+  th:nth-child(4), td:nth-child(4) { 
+    width: 20%; 
+    text-align: right;
   }
 
   .valor {
@@ -60,32 +75,27 @@
     text-align: right;
   }
 
+  /* MOBILE */
+  @media (max-width: 699px) {
+    table { display: none; }
+
+    .card {
+      background: #111827;
+      border-radius: 10px;
+      padding: 12px;
+      margin-bottom: 10px;
+    }
+
+    .linha {
+      display: flex;
+      justify-content: space-between;
+      margin: 4px 0;
+    }
+  }
+
   /* PC */
   @media (min-width: 700px) {
     .cards { display: none; }
-
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      table-layout: fixed;
-    }
-
-    th, td {
-      padding: 10px;
-      border-bottom: 1px solid #333;
-    }
-
-    th { background: #111827; }
-
-    th:nth-child(1), td:nth-child(1) { width: 30%; }
-    th:nth-child(2), td:nth-child(2) { width: 25%; }
-    th:nth-child(3), td:nth-child(3) { width: 25%; }
-    th:nth-child(4), td:nth-child(4) { width: 20%; text-align: right; }
-  }
-
-  /* Mobile */
-  @media (max-width: 699px) {
-    table { display: none; }
   }
 </style>
 </head>
@@ -119,18 +129,16 @@
 </div>
 
 <script>
-const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwKF390cx9XLISrBtvW5CcLlYTw450CRW3tCyLb8PNLQHGaHtJAGrDUABok3Z-TUZWtCA/exec";
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwaG5YkcCTPE1yUSyFL_GQTtSKs94GTUCYfcqG1gYnpndewdQWCGABBupS88v8fKwfpzg/exec";
 
 function parseDataBR(dataStr) {
   if (!dataStr) return new Date(0);
-
   const partes = dataStr.split(" ");
   if (partes.length >= 2) {
     const [dia, mes, ano] = partes[0].split("/");
     const hora = partes[1];
     return new Date(`${ano}-${mes}-${dia}T${hora}`);
   }
-
   return new Date(dataStr);
 }
 
@@ -157,10 +165,8 @@ function bloquearTela(msg) {
       height:100vh;
       align-items:center;
       justify-content:center;
-      font-family:Arial;
       background:#0b0f1a;
       color:#fff;
-      text-align:center;
     ">
       <h2>${msg}</h2>
     </div>
@@ -176,9 +182,7 @@ function carregarDados() {
     return;
   }
 
-  const URL = SCRIPT_URL + "?acesso=" + acesso;
-
-  fetch(URL)
+  fetch(SCRIPT_URL + "?acesso=" + acesso)
     .then(res => res.json())
     .then(dados => {
 
@@ -196,11 +200,13 @@ function carregarDados() {
       document.getElementById("atualizacao").innerText =
         "Atualizado: " + new Date().toLocaleTimeString("pt-BR");
 
-      // MOBILE
       let htmlCards = "";
+      let htmlTabela = "";
+
       dados.forEach(item => {
         const v = formatarValor(item.valor);
 
+        // MOBILE
         htmlCards += `
           <div class="card">
             <div class="linha"><span>Data:</span><span>${item.data}</span></div>
@@ -209,15 +215,8 @@ function carregarDados() {
             <div class="linha"><span>Valor:</span><span class="${v.classe}">${v.texto}</span></div>
           </div>
         `;
-      });
 
-      document.getElementById("cards").innerHTML = htmlCards;
-
-      // PC
-      let htmlTabela = "";
-      dados.forEach(item => {
-        const v = formatarValor(item.valor);
-
+        // PC
         htmlTabela += `
           <tr>
             <td>${item.data}</td>
@@ -228,6 +227,7 @@ function carregarDados() {
         `;
       });
 
+      document.getElementById("cards").innerHTML = htmlCards;
       document.getElementById("tabela").innerHTML = htmlTabela;
 
     })
