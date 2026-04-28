@@ -54,13 +54,14 @@
     color: #22c55e;
     font-weight: bold;
     font-size: 16px;
+    text-align: right;
   }
 
-  /* 🔥 destaque 1,2,3 */
   .destaque {
     color: #f59e0b;
     font-weight: bold;
     font-size: 16px;
+    text-align: right;
   }
 
   .data {
@@ -77,16 +78,26 @@
     table {
       width: 100%;
       border-collapse: collapse;
+      table-layout: fixed; /* 🔥 alinhamento fixo */
     }
 
     th, td {
       padding: 10px;
       border-bottom: 1px solid #333;
+      text-align: left;
+      word-wrap: break-word;
     }
 
     th {
       background: #111827;
+      font-weight: 600;
     }
+
+    /* 🔥 larguras fixas */
+    th:nth-child(1), td:nth-child(1) { width: 30%; }
+    th:nth-child(2), td:nth-child(2) { width: 25%; }
+    th:nth-child(3), td:nth-child(3) { width: 25%; }
+    th:nth-child(4), td:nth-child(4) { width: 20%; text-align: right; }
 
     .valor, .destaque {
       font-size: 14px;
@@ -146,15 +157,11 @@ function parseDataBR(dataStr) {
   return new Date(dataStr);
 }
 
-// 🔥 função com destaque
 function formatarValor(v) {
   const num = parseFloat(v) || 0;
 
   if (num === 1 || num === 2 || num === 3) {
-    return {
-      texto: num,
-      classe: "destaque"
-    };
+    return { texto: num, classe: "destaque" };
   }
 
   return {
@@ -188,7 +195,6 @@ function carregarDados() {
         });
       });
 
-      // ordenar mais recente
       dados.sort((a,b) => b.dataObj - a.dataObj);
 
       document.getElementById("atualizacao").innerText =
@@ -234,10 +240,7 @@ function carregarDados() {
     });
 }
 
-// auto atualização
 setInterval(carregarDados, 10000);
-
-// inicial
 carregarDados();
 </script>
 
